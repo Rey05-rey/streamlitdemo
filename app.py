@@ -1,14 +1,53 @@
+from pathlib import Path
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# Impor variabel dan fungsi dari file terpisah
-from config import FEATURES, EVAL_DATA
-from utils import load_model, validate_ohlc
+# ==========================================
+# 1. KONFIGURASI NAMA FILE & FITUR
+# ==========================================
+MODEL_PATH = Path("ModelBRI.pkl") 
 
+FEATURES = [
+    "Open_t-2", "High_t-2", "Low_t-2", "Close_t-2", "Volume_t-2",
+    "Open_t-1", "High_t-1", "Low_t-1", "Close_t-1", "Volume_t-1"
+]
 
+# Data Hasil Evaluasi 5 Skenario
+EVAL_DATA = pd.DataFrame({
+    "Split": ["90:10", "80:20", "70:30", "60:40", "50:50"],
+    "MAE": [67.7801, 77.6651, 87.3646, 81.9558, 77.0202],
+    "RMSE": [89.7726, 103.4310, 116.4463, 109.4345, 102.6369],
+    "MAPE (%)": [1.7452, 1.9558, 2.0237, 1.8190, 1.6820],
+    "R²": [0.7419, 0.8905, 0.9663, 0.9790, 0.9792]
+})
+
+# ==========================================
+# 2. FUNGSI UTILITY & LOAD MODEL
+# ==========================================
+@st.cache_resource
+def load_model():
+    """Memuat model Regresi Linear Berganda yang telah dilatih."""
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"{MODEL_PATH.name} tidak ditemukan. Pastikan file berada di folder yang sama.")
+    with MODEL_PATH.open("rb") as file:
+        return pickle.load(file)
+
+def validate_ohlc(o, h, l, c, day_label):
+    """Validasi sederhana konsistensi input harga pada suatu hari."""
+    errors = []
+    if h < o: errors.append(f"[{day_label}] Nilai High tidak boleh lebih kecil dari Open.")
+    if l > o: errors.append(f"[{day_label}] Nilai Low tidak boleh lebih besar dari Open.")
+    if h < l: errors.append(f"[{day_label}] Nilai High tidak boleh lebih kecil dari Low.")
+    if c > h or c < l: errors.append(f"[{day_label}] Nilai Close harus berada di antara rentang High dan Low.")
+    return errors 
+
+# ==========================================
+# 3. KOMPONEN TAMPILAN (UI)
+# ==========================================
 def show_manual_prediction(inputs, model):
     """Menampilkan hasil prediksi manual dan Visualisasi Evaluasi Model."""
     features = pd.DataFrame([inputs], columns=FEATURES)
@@ -72,7 +111,6 @@ def main():
         
         with col_t2:
             st.markdown("#### Hari Pertama (H-2)")
-            # Mengubah value=None menjadi angka riil H-2
             o_t2 = st.number_input("Open (H-2)", min_value=0.0, value=4320.0, step=5.0)
             h_t2 = st.number_input("High (H-2)", min_value=0.0, value=4370.0, step=5.0)
             l_t2 = st.number_input("Low (H-2)", min_value=0.0, value=4280.0, step=5.0)
@@ -81,7 +119,6 @@ def main():
             
         with col_t1:
             st.markdown("#### Hari Kedua (H-1)")
-            # Mengubah value=None menjadi angka riil H-1
             o_t1 = st.number_input("Open (H-1)", min_value=0.0, value=4360.0, step=5.0)
             h_t1 = st.number_input("High (H-1)", min_value=0.0, value=4450.0, step=5.0)
             l_t1 = st.number_input("Low (H-1)", min_value=0.0, value=4320.0, step=5.0)
