@@ -16,7 +16,7 @@ FEATURES = [
     "Open_t-1", "High_t-1", "Low_t-1", "Close_t-1", "Volume_t-1"
 ]
 
-# Data Hasil Evaluasi 5 Skenario
+# Data Hasil Evaluasi 5 Skenario (tetap float agar grafik Plotly tidak error)
 EVAL_DATA = pd.DataFrame({
     "Split": ["90:10", "80:20", "70:30", "60:40", "50:50"],
     "MAE": [67.7801, 77.6651, 87.3646, 81.9558, 77.0202],
@@ -45,6 +45,14 @@ def validate_ohlc(o, h, l, c, day_label):
     if c > h or c < l: errors.append(f"[{day_label}] Nilai Close harus berada di antara rentang High dan Low.")
     return errors 
 
+def format_rupiah(val: float) -> str:
+    """Format angka ke format Rupiah standar Indonesia (titik ribuan, koma desimal)."""
+    return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+def format_koma(val: float, decimals: int = 4) -> str:
+    """Format desimal float menjadi string dengan pemisah koma."""
+    return f"{val:.{decimals}f}".replace(".", ",")
+
 # ==========================================
 # 3. KOMPONEN TAMPILAN (UI)
 # ==========================================
@@ -58,32 +66,53 @@ def show_manual_prediction(inputs, model):
     st.subheader("Hasil Prediksi")
     col1, col2 = st.columns(2)
     with col1:
-        st.metric(label="Prediksi Harga Penutupan", value=f"Rp {prediction:,.2f}")
+        st.metric(
+            label="Prediksi Harga Penutupan", 
+            value=f"Rp {format_rupiah(prediction)}"
+        )
 
     difference = prediction - close_t1
     difference_pct = (difference / close_t1 * 100 if close_t1 != 0 else 0.0)
     with col2:
-        st.metric(label="Proyeksi Selisih thd Close H-1", value=f"Rp {difference:,.2f}", delta=f"{difference_pct:.2f}%")
+        st.metric(
+            label="Proyeksi Selisih thd Close H-1", 
+            value=f"Rp {format_rupiah(difference)}", 
+            delta=f"{format_koma(difference_pct, 2)}%"
+        )
     
     st.markdown("---")
     st.subheader("Visualisasi Hasil Evaluasi Model (5 Skenario Pembagian Data)")
     st.write("Tabel dan grafik di bawah ini menunjukkan perbandingan performa algoritma Regresi Linear Berganda pada seluruh skenario rasio pembagian data (Latih : Uji) yang menjadi dasar model ini.")
     
-    st.dataframe(EVAL_DATA.style.format({"MAE": "{:.4f}", "RMSE": "{:.4f}", "MAPE (%)": "{:.4f}", "R²": "{:.4f}"}), use_container_width=True, hide_index=True)
+    # Format tabel evaluasi agar menggunakan pemisah koma
+    st.dataframe(
+        EVAL_DATA.style.format({
+            "MAE": lambda x: format_koma(x, 4),
+            "RMSE": lambda x: format_koma(x, 4),
+            "MAPE (%)": lambda x: format_koma(x, 4),
+            "R²": lambda x: format_koma(x, 4),
+        }),
+        use_container_width=True, 
+        hide_index=True
+    )
     
     col_fig1, col_fig2 = st.columns(2)
     
     with col_fig1:
-        fig1 = px.line(EVAL_DATA, x="Split", y=["MAE", "RMSE"], markers=True, 
-                       title="Perbandingan Error: MAE vs RMSE",
-                       labels={"value": "Nilai Error", "variable": "Metrik"})
+        fig1 = px.line(
+            EVAL_DATA, x="Split", y=["MAE", "RMSE"], markers=True, 
+            title="Perbandingan Error: MAE vs RMSE",
+            labels={"value": "Nilai Error", "variable": "Metrik"}
+        )
         fig1.update_traces(textposition="top center")
         st.plotly_chart(fig1, use_container_width=True)
         
     with col_fig2:
-        fig2 = px.line(EVAL_DATA, x="Split", y=["MAPE (%)", "R²"], markers=True, 
-                       title="Perbandingan Akurasi: MAPE vs R²",
-                       labels={"value": "Nilai Evaluasi", "variable": "Metrik"})
+        fig2 = px.line(
+            EVAL_DATA, x="Split", y=["MAPE (%)", "R²"], markers=True, 
+            title="Perbandingan Akurasi: MAPE vs R²",
+            labels={"value": "Nilai Evaluasi", "variable": "Metrik"}
+        )
         fig2.update_traces(textposition="top center")
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -99,7 +128,6 @@ def main():
         st.error(str(error))
         st.stop()
 
-    # Hanya menyisakan 2 tab: Prediksi dan Informasi Penelitian
     tab_manual, tab_info = st.tabs([
         "Prediksi", "Informasi Penelitian"
     ])
@@ -111,19 +139,19 @@ def main():
         
         with col_t2:
             st.markdown("#### Hari Pertama (H-2)")
-            o_t2 = st.number_input("Open (H-2)", min_value=0.0, value=4320.0, step=5.0)
-            h_t2 = st.number_input("High (H-2)", min_value=0.0, value=4370.0, step=5.0)
-            l_t2 = st.number_input("Low (H-2)", min_value=0.0, value=4280.0, step=5.0)
-            c_t2 = st.number_input("Close (H-2)", min_value=0.0, value=4370.0, step=5.0)
-            v_t2 = st.number_input("Volume (H-2)", min_value=0.0, value=180030000.0, step=1000.0)
+            o_t2 = st.number_input("Open (H-2)", min_value=0.0, value=4320, step=5.0)
+            h_t2 = st.number_input("High (H-2)", min_value=0.0, value=4370, step=5.0)
+            l_t2 = st.number_input("Low (H-2)", min_value=0.0, value=4280, step=5.0)
+            c_t2 = st.number_input("Close (H-2)", min_value=0.0, value=4370, step=5.0)
+            v_t2 = st.number_input("Volume (H-2)", min_value=0.0, value=180030000, step=1000.0)
             
         with col_t1:
             st.markdown("#### Hari Kedua (H-1)")
-            o_t1 = st.number_input("Open (H-1)", min_value=0.0, value=4360.0, step=5.0)
-            h_t1 = st.number_input("High (H-1)", min_value=0.0, value=4450.0, step=5.0)
-            l_t1 = st.number_input("Low (H-1)", min_value=0.0, value=4320.0, step=5.0)
-            c_t1 = st.number_input("Close (H-1)", min_value=0.0, value=4450.0, step=5.0)
-            v_t1 = st.number_input("Volume (H-1)", min_value=0.0, value=466130000.0, step=1000.0)
+            o_t1 = st.number_input("Open (H-1)", min_value=0.0, value=4360, step=5.0)
+            h_t1 = st.number_input("High (H-1)", min_value=0.0, value=4450, step=5.0)
+            l_t1 = st.number_input("Low (H-1)", min_value=0.0, value=4320, step=5.0)
+            c_t1 = st.number_input("Close (H-1)", min_value=0.0, value=4450, step=5.0)
+            v_t1 = st.number_input("Volume (H-1)", min_value=0.0, value=466130000, step=1000.0)
 
         if st.button("Prediksi Harga Penutupan", type="primary", use_container_width=True):
             inputs = [o_t2, h_t2, l_t2, c_t2, v_t2, o_t1, h_t1, l_t1, c_t1, v_t1]
