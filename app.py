@@ -139,19 +139,19 @@ def main():
         
         with col_t2:
             st.markdown("#### Hari Pertama (H-2)")
-            o_t2 = st.number_input("Open (H-2)", min_value=0.0, value=4320, step=5.0)
-            h_t2 = st.number_input("High (H-2)", min_value=0.0, value=4370, step=5.0)
-            l_t2 = st.number_input("Low (H-2)", min_value=0.0, value=4280, step=5.0)
-            c_t2 = st.number_input("Close (H-2)", min_value=0.0, value=4370, step=5.0)
-            v_t2 = st.number_input("Volume (H-2)", min_value=0.0, value=180030000, step=1000.0)
+            o_t2 = st.number_input("Open (H-2)", min_value=0, value=4320, step=5)
+            h_t2 = st.number_input("High (H-2)", min_value=0, value=4370, step=5)
+            l_t2 = st.number_input("Low (H-2)", min_value=0, value=4280, step=5)
+            c_t2 = st.number_input("Close (H-2)", min_value=0, value=4370, step=5)
+            v_t2 = st.number_input("Volume (H-2)", min_value=0, value=180030000, step=1000)
             
         with col_t1:
             st.markdown("#### Hari Kedua (H-1)")
-            o_t1 = st.number_input("Open (H-1)", min_value=0.0, value=4360, step=5.0)
-            h_t1 = st.number_input("High (H-1)", min_value=0.0, value=4450, step=5.0)
-            l_t1 = st.number_input("Low (H-1)", min_value=0.0, value=4320, step=5.0)
-            c_t1 = st.number_input("Close (H-1)", min_value=0.0, value=4450, step=5.0)
-            v_t1 = st.number_input("Volume (H-1)", min_value=0.0, value=466130000, step=1000.0)
+            o_t1 = st.number_input("Open (H-1)", min_value=0, value=4360, step=5)
+            h_t1 = st.number_input("High (H-1)", min_value=0, value=4450, step=5)
+            l_t1 = st.number_input("Low (H-1)", min_value=0, value=4320, step=5)
+            c_t1 = st.number_input("Close (H-1)", min_value=0, value=4450, step=5)
+            v_t1 = st.number_input("Volume (H-1)", min_value=0, value=466130000, step=1000)
 
         if st.button("Prediksi Harga Penutupan", type="primary", use_container_width=True):
             inputs = [o_t2, h_t2, l_t2, c_t2, v_t2, o_t1, h_t1, l_t1, c_t1, v_t1]
