@@ -101,7 +101,7 @@ def show_manual_prediction(inputs, model):
     with col_fig1:
         fig1 = px.line(
             EVAL_DATA, x="Split", y=["MAE", "RMSE"], markers=True, 
-            title="Perbandingan Error: MAE vs RMSE",
+            title="Grafik Nilai MAE dan RMSE",
             labels={"value": "Nilai Error", "variable": "Metrik"}
         )
         fig1.update_traces(textposition="top center")
@@ -110,7 +110,7 @@ def show_manual_prediction(inputs, model):
     with col_fig2:
         fig2 = px.line(
             EVAL_DATA, x="Split", y=["MAPE (%)", "R²"], markers=True, 
-            title="Perbandingan Akurasi: MAPE vs R²",
+            title="Grafik Nilai MAPE dan R²",
             labels={"value": "Nilai Evaluasi", "variable": "Metrik"}
         )
         fig2.update_traces(textposition="top center")
